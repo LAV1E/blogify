@@ -1,22 +1,26 @@
-const JWT = require("jsonwebtoken");
+const { validateToken } = require('../services/authentications'); // adjust path
 
-const secret = process.env.JWT_SECRET || "$lav@123";
+function checkForAuthenticationCookie(cookieName) {
+  return (req, res, next) => {
+    const tokenCookieValue = req.cookies[cookieName];
 
-function createTokenForUser(user) {
-  const payload = {
-    _id: user._id,
-    email: user.email,
-    profileImageURL: user.profileImageURL,
-    role: user.role,
+    if (!tokenCookieValue) {
+      req.user = null;
+      return next(); // exit early if no token
+    }
+
+    try {
+      const userPayload = validateToken(tokenCookieValue);
+      req.user = userPayload;
+    } catch (error) {
+      console.error("Invalid token:", error.message);
+      req.user = null; // fallback to null user
+    }
+
+    return next(); // always call next exactly once
   };
-  return JWT.sign(payload, secret);
-}
-
-function validateToken(token) {
-  return JWT.verify(token, secret);
 }
 
 module.exports = {
-  createTokenForUser,
-  validateToken,
+  checkForAuthenticationCookie,
 };
