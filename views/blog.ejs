@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <%- include('./partials/head') %>
+  <title><%= blog.title %> | Blog</title>
+  <style>
+    .fade-in {
+      animation: fadeIn 1s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .zoom-hover:hover {
+      transform: scale(1.02);
+      transition: transform 0.3s ease-in-out;
+    }
+  </style>
+</head>
+<body class="bg-light">
+
+  <%- include('./partials/nav') %>
+
+  <div class="container py-5 fade-in">
+    <!-- Blog Post -->
+    <div class="card shadow-sm mb-5 zoom-hover">
+      <% if (blog.coverImageURL) { %>
+        <img src="<%= blog.coverImageURL %>" class="card-img-top rounded-top" alt="Cover Image" style="max-height: 400px; object-fit: cover;">
+      <% } %>
+      <div class="card-body">
+        <h1 class="card-title fw-bold mb-4"><%= blog.title %></h1>
+        <p class="card-text fs-5 lh-lg"><%= blog.body %></p>
+
+        <% if (user && user._id.toString() === blog.createdBy._id.toString()) { %>
+          <form id="deleteBlogForm" action="/blog/delete/<%= blog._id %>" method="POST">
+            <button type="submit" class="btn btn-sm btn-danger">Delete Blog</button>
+          </form>
+        <% } %>
+      </div>
+    </div>
+
+    <!-- Author Info -->
+    <div class="d-flex align-items-center mb-5 fade-in">
+      <img src="<%= blog.createdBy.profileImageURL %>" class="rounded-circle me-3 border shadow-sm" width="50" height="50" alt="Author">
+      <strong class="fs-5"><%= blog.createdBy.fullName %></strong>
+    </div>
+
+    <!-- Comments Section -->
+    <div class="card shadow-sm fade-in">
+      <div class="card-body">
+        <h3 class="card-title mb-4 text-primary">Comments (<%= comments.length %>)</h3>
+
+        <!-- Comment Form -->
+        <% if (locals.user) { %>
+          <form action="/blog/comment/<%= blog._id %>" method="post" class="mb-4">
+            <div class="input-group shadow-sm">
+              <input type="text" name="content" class="form-control rounded-start" placeholder="Write a comment..." required>
+              <button class="btn btn-primary rounded-end" type="submit">Add</button>
+            </div>
+          </form>
+        <% } else { %>
+          <p class="text-muted fst-italic">Please log in to post a comment.</p>
+        <% } %>
+
+        <!-- Comments List -->
+        <% if (comments.length === 0) { %>
+          <p class="text-muted">No comments yet. Be the first to comment!</p>
+        <% } else { %>
+          <% comments.forEach(comment => { %>
+            <div class="d-flex mb-3 p-2 border-bottom justify-content-between comment-item">
+              <div class="d-flex">
+                <img src="<%= comment.createdBy.profileImageURL %>" class="rounded-circle me-3 border" width="40" height="40" alt="user">
+                <div>
+                  <strong class="text-dark"><%= comment.createdBy.fullName %></strong>
+                  <p class="mb-1"><%= comment.content %></p>
+                </div>
+              </div>
+
+              <% if (user && user._id.toString() === comment.createdBy._id.toString()) { %>
+                <form action="/blog/comment/delete/<%= comment._id %>" method="POST" class="delete-comment-form">
+                  <button class="btn btn-sm btn-outline-danger" type="submit">X</button>
+                </form>
+              <% } %>
+            </div>
+          <% }) %>
+        <% } %>
+      </div>
+    </div>
+  </div>
+
+  <%- include('./partials/scripts') %>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script>
+    // Handle comment delete
+    document.querySelectorAll(".delete-comment-form").forEach(form => {
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const confirmed = await Swal.fire({
+          title: "Are you sure?",
+          text: "This comment will be permanently deleted!",
+          icon: "warning",
+          showCancelButton: true,
+          confirmButtonColor: "#d33",
+          cancelButtonColor: "#aaa",
+          confirmButtonText: "Yes, delete it!"
+        });
+
+        if (!confirmed.isConfirmed) return;
+
+        try {
+          const response = await fetch(form.action, {
+            method: "POST"
+          });
+
+          const result = await response.json();
+          if (result.success) {
+            form.closest(".comment-item").remove();
+            Swal.fire("Deleted!", "Comment deleted successfully.", "success");
+          } else {
+            Swal.fire("Error", result.message || "Something went wrong.", "error");
+          }
+        } catch (err) {
+          Swal.fire("Error", "Failed to delete comment.", "error");
+        }
+      });
+    });
+
+    // Handle blog delete
+    const deleteBlogForm = document.getElementById("deleteBlogForm");
+    if (deleteBlogForm) {
+      deleteBlogForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const confirmed = await Swal.fire({
+          title: "Are you sure?",
+          text: "This blog and its comments will be deleted!",
+          icon: "warning",
+          showCancelButton: true,
+          confirmButtonColor: "#d33",
+          cancelButtonColor: "#aaa",
+          confirmButtonText: "Yes, delete it!"
+        });
+
+        if (!confirmed.isConfirmed) return;
+
+        try {
+          const response = await fetch(deleteBlogForm.action, {
+            method: "POST"
+          });
+
+          if (response.ok) {
+            Swal.fire("Deleted!", "Blog deleted successfully.", "success").then(() => {
+              window.location.href = "/";
+            });
+          } else {
+            Swal.fire("Error", "Failed to delete blog.", "error");
+          }
+        } catch (err) {
+          Swal.fire("Error", "Something went wrong.", "error");
+        }
+      });
+    }
+  </script>
+</body>
+</html>

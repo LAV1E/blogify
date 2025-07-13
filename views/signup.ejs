@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <%- include('./partials/head') %>
+  <title>Signup Page</title>
+  <style>
+    body {
+      background: linear-gradient(135deg, #f8f9fa, #e9ecef); /* lighter greys */
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    .signup-container {
+      width: 100%;
+      max-width: 420px;
+      background-color: #ffffff;
+      padding: 40px 30px;
+      border-radius: 12px;
+      box-shadow: 0 0 25px rgba(173, 181, 189, 0.25); /* light grey glow */
+      position: relative;
+      animation: fadeIn 0.9s ease-in-out;
+    }
+
+    .signup-container::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 12px;
+      padding: 2px;
+      background: linear-gradient(130deg, #dee2e6, #adb5bd, #dee2e6);
+      background-size: 300% 300%;
+      z-index: -1;
+      filter: blur(5px);
+      animation: shine 4s ease infinite;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes shine {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    h2 {
+      text-align: center;
+      color: #6c757d;
+      font-weight: 600;
+      margin-bottom: 25px;
+    }
+
+    .form-label {
+      font-weight: 500;
+      color: #495057;
+    }
+
+    .form-control {
+      border-radius: 6px;
+      border: 1px solid #ced4da;
+    }
+
+    .form-control:focus {
+      border-color: #adb5bd;
+      box-shadow: 0 0 0 0.2rem rgba(173,181,189,.25);
+    }
+
+    button {
+      margin-top: 20px;
+    }
+
+    .btn-primary {
+      background-color: #adb5bd;
+      border-color: #adb5bd;
+      color: #fff;
+    }
+
+    .btn-primary:hover {
+      background-color: #868e96;
+      border-color: #868e96;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="signup-container shadow-lg">
+    <h2>Signup</h2>
+    <form action="/user/signup" method="POST">
+      <div class="mb-3">
+        <label for="fullName" class="form-label">Full Name</label>
+        <input type="text" class="form-control" id="fullName" name="fullName" placeholder="John Doe" required>
+      </div>
+
+      <div class="mb-3">
+        <label for="email" class="form-label">Email</label>
+        <input type="email" class="form-control" id="email" name="email" placeholder="example@mail.com" required>
+      </div>
+
+      <div class="mb-4">
+        <label for="password" class="form-label">Password</label>
+        <input type="password" class="form-control" id="password" name="password" placeholder="••••••••" required>
+      </div>
+
+      <div class="d-grid">
+        <button type="submit" class="btn btn-primary btn-lg shadow-sm">Register</button>
+      </div>
+    </form>
+  </div>
+
+  <%- include('./partials/scripts') %>
+</body>
+</html>
